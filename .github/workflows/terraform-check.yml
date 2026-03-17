@@ -1,0 +1,15 @@
+name: Terraform Check
+on: [push, pull_request]
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: hashicorp/setup-terraform@v2
+      - run: terraform fmt -check -recursive
+      - name: Validate and Plan Day 1
+        working-directory: ./day1
+        run: |
+          terraform init
+          terraform validate
+          terraform plan
