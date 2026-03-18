@@ -1,15 +1,40 @@
 name: Terraform Check
-on: [push, pull_request]
+
+on:
+  push:
+    branches:
+      - main
+
 jobs:
-  validate:
+  terraform:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dir: [day1, day2, day3, day4]
     steps:
-      - uses: actions/checkout@v3
-      - uses: hashicorp/setup-terraform@v2
-      - run: terraform fmt -check -recursive
-      - name: Validate and Plan Day 1
-        working-directory: ./day1
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ./${{ matrix.dir }}
+
+      - name: Terraform Format Check
+        run: terraform fmt -check
+        working-directory: ./${{ matrix.dir }}
+
+      - name: Terraform Validate
+        run: terraform validate
+        working-directory: ./${{ matrix.dir }}
+
+      - name: Terraform Plan
         run: |
-          terraform init
-          terraform validate
-          terraform plan
+          if [ "${{ matrix.dir }}" = "day2" ]; then
+            terraform plan -var-file="dev.tfvars"
+          else
+            terraform plan
+          fi
+        working-directory: ./${{ matrix.dir }}
